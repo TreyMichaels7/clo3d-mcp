@@ -32,6 +32,25 @@ def handle_ping(params):
     return {"pong": True, "in_clo3d": IN_CLO3D}
 
 
+def handle_call_api(params):
+    """Call any function on one of CLO3D's API modules directly."""
+    modules = {
+        "export_api": export_api,
+        "fabric_api": fabric_api,
+        "import_api": import_api,
+        "pattern_api": pattern_api,
+        "utility_api": utility_api,
+    }
+    module = modules[params["module"]]
+    func = getattr(module, params["function"])
+    result = func(*params.get("args", []))
+    try:
+        json.dumps(result)
+    except (TypeError, ValueError):
+        result = str(result)
+    return {"result": result}
+
+
 def handle_stop(params):
     global _stop_requested
     _stop_requested = True
@@ -417,6 +436,7 @@ def handle_get_avatar_genders(params):
 HANDLERS = {
     "ping": handle_ping,
     "stop": handle_stop,
+    "call_api": handle_call_api,
     "get_project_info": handle_get_project_info,
     "new_project": handle_new_project,
     "open_file": handle_open_file,

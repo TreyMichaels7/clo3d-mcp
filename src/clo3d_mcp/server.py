@@ -37,6 +37,18 @@ def stop_server() -> dict:
 
 
 @mcp.tool()
+def call_api(module: str, function: str, args: list = []) -> dict:
+    """Call any function on a CLO3D Python API module directly (escape hatch for functions without a dedicated tool).
+
+    Args:
+        module: One of export_api, fabric_api, import_api, pattern_api, utility_api.
+        function: Function name, e.g. AddSeamlinePairGroup, SetArrangement, AddPatternAnnotation.
+        args: Positional arguments as a JSON list.
+    """
+    return _send("call_api", {"module": module, "function": function, "args": args})
+
+
+@mcp.tool()
 def new_project() -> dict:
     """Create a new empty CLO3D project, clearing the current scene."""
     return _send("new_project")

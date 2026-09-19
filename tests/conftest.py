@@ -24,6 +24,7 @@ class MockCLO3DServer:
         self._handlers = {
             "ping": lambda p: {"pong": True, "in_clo3d": False},
             "stop": lambda p: {"stopped": True},
+            "call_api": lambda p: {"result": None},
             "get_project_info": lambda p: {
                 "project_name": "TestProject",
                 "project_path": "/tmp/test.zprj",
