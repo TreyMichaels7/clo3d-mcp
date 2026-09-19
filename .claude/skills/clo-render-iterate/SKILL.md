@@ -1,5 +1,5 @@
 ---
-name: clo3d-iterate
+name: clo-render-iterate
 description: Use when building or adjusting a garment in CLO3D through the clo3d MCP (pattern creation, sewing, arrangement, simulation) and iterating against a reference image without the user driving CLO's UI.
 ---
 
