@@ -19,7 +19,7 @@ COMM_DIR = os.path.join(os.environ.get("TEMP") or "/tmp", "clo3d_mcp")
 REQUEST_FILE = os.path.join(COMM_DIR, "request.json")
 RESPONSE_FILE = os.path.join(COMM_DIR, "response.json")
 POLL_INTERVAL = 0.1
-IDLE_TIMEOUT = 120  # seconds without a request before serve() returns
+IDLE_TIMEOUT = 3600  # seconds without a request before serve() returns
 
 _stop_requested = False
 

@@ -10,7 +10,7 @@ MCP server (`src/clo3d_mcp/`) + single-file CLO3D plugin (`plugin/clo3d_mcp_plug
 
 ## Architecture (file IPC)
 - Comm dir: `%TEMP%/clo3d_mcp` on Windows, `/tmp/clo3d_mcp` on macOS/Linux (override: `CLO3D_MCP_DIR`). WSL auto-detects Windows temp in `connection.py:_find_comm_dir`.
-- Plugin `serve()` blocks CLO3D's main thread (CLO's embedded Python doesn't run background threads while idle). It exits after 120s idle or on the `stop` command (`stop_server` tool). User must re-run the script in CLO3D for each batch.
+- Plugin `serve()` blocks CLO3D's main thread (CLO's embedded Python doesn't run background threads while idle). It exits after 1h idle or on the `stop` command (`stop_server` tool). User must re-run the script in CLO3D for each batch.
 - Protocol: server writes `request.json` (`{id, type, params}`), plugin polls and writes `response.json` (`{id, status, result}`). Both use atomic write (`.tmp` + rename). Response `id` must match request; stale ids are skipped.
 - Timeout 180s (`TIMEOUT` in `connection.py`) — sim/export can take minutes. Retries: 3x with 1s delay; `ping()` uses 1 retry and returns bool instead of raising.
 
