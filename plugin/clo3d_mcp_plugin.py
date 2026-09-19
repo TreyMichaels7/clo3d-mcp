@@ -2,7 +2,6 @@ import json
 import os
 import sys
 import time
-import threading
 
 try:
     import export_api
@@ -16,13 +15,13 @@ except ImportError:
     print("[CLO MCP] WARNING: Not running inside CLO3D. API calls will fail.")
 
 # Communication directory
-COMM_DIR = os.path.join(os.environ.get("TEMP", os.path.expanduser("~")), "clo3d_mcp")
+COMM_DIR = os.path.join(os.environ.get("TEMP") or "/tmp", "clo3d_mcp")
 REQUEST_FILE = os.path.join(COMM_DIR, "request.json")
 RESPONSE_FILE = os.path.join(COMM_DIR, "response.json")
 POLL_INTERVAL = 0.1
+IDLE_TIMEOUT = 120  # seconds without a request before serve() returns
 
-_server_running = False
-_server_thread = None
+_stop_requested = False
 
 
 # ---------------------------------------------------------------------------
@@ -31,6 +30,12 @@ _server_thread = None
 
 def handle_ping(params):
     return {"pong": True, "in_clo3d": IN_CLO3D}
+
+
+def handle_stop(params):
+    global _stop_requested
+    _stop_requested = True
+    return {"stopped": True}
 
 
 # -- Scene --
@@ -148,8 +153,8 @@ def handle_create_pattern(params):
     points = params["points"]
     point_tuples = []
     for p in points:
-        x, y = p[0], p[1]
-        vtype = p[2] if len(p) > 2 else 0
+        x, y = float(p[0]), float(p[1])
+        vtype = int(p[2]) if len(p) > 2 else 0
         point_tuples.append((x, y, vtype))
     result = pattern_api.CreatePatternWithPoints(point_tuples)
     return {"created": True, "point_count": len(point_tuples), "result": result}
@@ -411,6 +416,7 @@ def handle_get_avatar_genders(params):
 
 HANDLERS = {
     "ping": handle_ping,
+    "stop": handle_stop,
     "get_project_info": handle_get_project_info,
     "new_project": handle_new_project,
     "open_file": handle_open_file,
@@ -491,15 +497,17 @@ def process_command(data):
         })
 
 
-def poll_loop():
-    """Poll for request files and process them."""
-    global _server_running
+def serve(idle_timeout=IDLE_TIMEOUT):
+    """Poll for request files on the main thread until idle_timeout seconds
+    pass with no request, or a "stop" command arrives.
 
-    # Create comm directory
+    CLO3D's embedded Python only runs background threads while a script is
+    executing, so the loop must block the main thread. The CLO UI is frozen
+    while serving.
+    """
     if not os.path.exists(COMM_DIR):
         os.makedirs(COMM_DIR)
 
-    # Clean up stale files
     for f in [REQUEST_FILE, RESPONSE_FILE]:
         if os.path.exists(f):
             try:
@@ -507,35 +515,33 @@ def poll_loop():
             except OSError:
                 pass
 
-    print("[CLO MCP] Listening for commands in: " + COMM_DIR)
+    print("[CLO MCP] Serving commands in: " + COMM_DIR
+          + " (idle timeout " + str(idle_timeout) + "s)")
 
-    while _server_running:
+    last_activity = time.time()
+    while time.time() - last_activity < idle_timeout:
         try:
             if os.path.exists(REQUEST_FILE):
-                # Read request
                 with open(REQUEST_FILE, "r") as f:
                     data = f.read()
-
-                # Delete request file
                 try:
                     os.remove(REQUEST_FILE)
                 except OSError:
                     pass
 
                 if data.strip():
-                    # Process and write response
+                    last_activity = time.time()
                     response = process_command(data)
 
-                    # Write to temp file first, then rename (atomic)
                     tmp_file = RESPONSE_FILE + ".tmp"
                     with open(tmp_file, "w") as f:
                         f.write(response)
-
-                    # Rename to final path
                     if os.path.exists(RESPONSE_FILE):
                         os.remove(RESPONSE_FILE)
                     os.rename(tmp_file, RESPONSE_FILE)
 
+                    if _stop_requested:
+                        break
         except Exception as e:
             print("[CLO MCP] Error: " + str(e))
 
@@ -544,39 +550,6 @@ def poll_loop():
     print("[CLO MCP] Server stopped")
 
 
-# ---------------------------------------------------------------------------
-# Public API
-# ---------------------------------------------------------------------------
-
-def start():
-    """Start the MCP plugin."""
-    global _server_running, _server_thread
-
-    if _server_running:
-        print("[CLO MCP] Already running")
-        return
-
-    _server_running = True
-    _server_thread = threading.Thread(target=poll_loop, daemon=True)
-    _server_thread.start()
-    print("[CLO MCP] Plugin started")
-
-
-def stop():
-    """Stop the MCP plugin."""
-    global _server_running, _server_thread
-
-    if not _server_running:
-        print("[CLO MCP] Not running")
-        return
-
-    _server_running = False
-    if _server_thread:
-        _server_thread.join(timeout=5)
-        _server_thread = None
-    print("[CLO MCP] Plugin stopped")
-
-
 # Auto-start
 if __name__ == "__main__" or IN_CLO3D:
-    start()
+    serve()

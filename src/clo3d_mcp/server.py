@@ -10,7 +10,7 @@ from clo3d_mcp.connection import get_connection, CLO3DConnectionError
 
 mcp = FastMCP(
     "clo3d",
-    description="Control CLO3D — the industry-standard 3D garment design software. "
+    instructions="Control CLO3D — the industry-standard 3D garment design software. "
     "Create patterns, manage fabrics, run simulations, export 3D models, and more.",
 )
 
@@ -28,6 +28,12 @@ def _send(command: str, params: dict | None = None) -> dict:
 def get_project_info() -> dict:
     """Get information about the current CLO3D project including name, path, version, and counts for patterns, fabrics, and colorways."""
     return _send("get_project_info")
+
+
+@mcp.tool()
+def stop_server() -> dict:
+    """Tell the CLO3D plugin to exit its serve loop and return control to the CLO3D UI. Call this when a batch of commands is done; the user must re-run the plugin script in CLO3D before sending more commands."""
+    return _send("stop")
 
 
 @mcp.tool()

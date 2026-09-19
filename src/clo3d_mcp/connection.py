@@ -64,7 +64,7 @@ def _find_comm_dir():
             pass
 
     # 3. Fallback: local temp
-    return os.path.join(os.environ.get("TEMP", "/tmp"), "clo3d_mcp")
+    return os.path.join(os.environ.get("TEMP") or "/tmp", "clo3d_mcp")
 
 
 class CLO3DConnection:
