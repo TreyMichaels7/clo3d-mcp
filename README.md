@@ -28,6 +28,8 @@ You'll see `[CLO MCP] Plugin started` in the console.
 claude mcp add clo3d -- uvx clo3d-mcp
 ```
 
+**OpenCode:** `opencode.json` is checked in — run `opencode` from the repo root.
+
 **Claude Desktop** (add to `claude_desktop_config.json`):
 ```json
 {

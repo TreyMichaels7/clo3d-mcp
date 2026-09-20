@@ -1,0 +1,12 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "clo3d": {
+      "type": "local",
+      "command": ["uv", "run", "clo3d-mcp"],
+      "cwd": ".",
+      "enabled": true,
+      "timeout": 15000
+    }
+  }
+}

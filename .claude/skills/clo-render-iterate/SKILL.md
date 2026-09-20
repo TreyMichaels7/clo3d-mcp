@@ -14,14 +14,17 @@ Drive CLO3D headlessly: fix → simulate → render → inspect → repeat. CLO'
 3. Verify with `get_project_info`. If it hangs >10s the plugin isn't polling — check `/tmp/clo3d_mcp/request.json` is being consumed.
 4. Plugin exits after 1h idle or on `stop_server`. Call `stop_server` at the end of every batch; the user must re-run the script after that.
 
+Harness: tools are named bare here; your harness prefixes them (`mcp__clo3d__get_project_info` in Claude Code, `clo3d_get_project_info` in OpenCode). MCP wiring is `opencode.json` (OpenCode) or `claude mcp add` (Claude Code) — see `docs/agent-onboarding.md`.
+
 ## The loop
 
 ```
 change → SetArrangement (re-seat affected pieces) → simulate 400–600
-      → SetCamViewPoint → ExportThumbnail3D → Read png → compare to reference
+      → SetCamViewPoint → ExportThumbnail3D → view png → compare to reference
       → save_project → repeat
 ```
 
+- View the PNG with your harness's file/image reader. If your model has no image input, stop and hand the render path to the user — don't infer the drape from tool output.
 - Save the `.zprj` after every pass. CLO has crashed mid-session.
 - Cap at ~8 passes before reporting back with renders.
 

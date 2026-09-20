@@ -3,6 +3,8 @@
 ## What this is
 MCP server (`src/clo3d_mcp/`) + single-file CLO3D plugin (`plugin/clo3d_mcp_plugin.py`) bridged by file-based IPC. No sockets, no CI, no lint/typecheck config.
 
+Agent onboarding (any harness): `docs/agent-onboarding.md`. Garment build/iterate workflow: `.claude/skills/clo-render-iterate/SKILL.md` (also loaded by OpenCode).
+
 ## Commands
 - `uv sync --dev` — install dev deps
 - `uv run pytest tests/ -v` — full suite (no CLO3D needed, uses `MockCLO3DServer` in `tests/conftest.py`)
