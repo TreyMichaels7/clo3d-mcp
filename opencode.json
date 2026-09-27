@@ -6,7 +6,7 @@
       "command": ["uv", "run", "clo3d-mcp"],
       "cwd": ".",
       "enabled": true,
-      "timeout": 15000
+      "timeout": 200000
     }
   }
 }
